@@ -1,0 +1,225 @@
+.panel {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 20px;
+}
+
+.section {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 12px;
+}
+
+/* 预设按钮 */
+.presetGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.presetButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 13px;
+}
+
+.presetButton:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.presetButton.active {
+  background: #4f46e5;
+  color: white;
+  border-color: #4f46e5;
+}
+
+.presetIcon {
+  font-size: 16px;
+}
+
+.presetName {
+  flex: 1;
+  text-align: left;
+}
+
+/* 文件大小过滤器 */
+.sizePresets {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.sizeButton {
+  padding: 6px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.sizeButton:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.sizeButton.active {
+  background: #4f46e5;
+  color: white;
+  border-color: #4f46e5;
+}
+
+.sizeSlider {
+  margin-bottom: 8px;
+}
+
+.slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  outline: none;
+  -webkit-appearance: none;
+  background: #e2e8f0;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #4f46e5;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #4f46e5;
+  cursor: pointer;
+  border: none;
+}
+
+.sizeDisplay {
+  text-align: center;
+  margin-top: 8px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.sizeHint {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 8px;
+}
+
+/* 扩展名选择 */
+.extensionGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 4px;
+  background: #f8fafc;
+  border-radius: 4px;
+}
+
+.extensionItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+
+.extensionItem:hover {
+  background: #e2e8f0;
+}
+
+.extensionItem input[type="checkbox"] {
+  cursor: pointer;
+}
+
+/* 自定义输入 */
+.input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  border-color: #4f46e5;
+}
+
+/* 已选择的标签 */
+.selectedExtensions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: #ddd6fe;
+  color: #6b21a8;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.tagRemove {
+  background: none;
+  border: none;
+  color: #6b21a8;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  margin-left: 2px;
+}
+
+.tagRemove:hover {
+  color: #4c1d95;
+}
