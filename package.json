@@ -21,16 +21,17 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
     "clsx": "^2.1.0",
     "file-saver": "^2.0.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-icons": "^5.0.1"
   },
   "devDependencies": {
+    "@types/file-saver": "^2.0.7",
+    "@types/node": "^24.0.7",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
-    "@types/file-saver": "^2.0.7",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
     "@vitejs/plugin-react": "^4.2.1",

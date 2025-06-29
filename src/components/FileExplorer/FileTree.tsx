@@ -13,6 +13,21 @@ interface FileTreeProps {
   level: number;
 }
 
+// 辅助函数，检查节点或其任何后代是否匹配搜索词
+function hasMatchingDescendant(node: FileNode, searchTerm: string): boolean {
+  const lowerCaseSearchTerm = searchTerm.toLowerCase();
+  
+  if (node.name.toLowerCase().includes(lowerCaseSearchTerm)) {
+    return true;
+  }
+  
+  if (node.type === 'directory' && node.children) {
+    return Object.values(node.children).some(child => hasMatchingDescendant(child, lowerCaseSearchTerm));
+  }
+  
+  return false;
+}
+
 export const FileTree: React.FC<FileTreeProps> = ({
   node,
   selectedFiles,
@@ -23,46 +38,44 @@ export const FileTree: React.FC<FileTreeProps> = ({
   level,
 }) => {
   const isExpanded = expandedDirs.has(node.path);
-  const isSelected = selectedFiles.has(node.path);
-  const isMatched = searchTerm && node.name.toLowerCase().includes(searchTerm.toLowerCase());
-  
-  // 检查是否有匹配的子节点
-  const hasMatchingChildren = (n: FileNode): boolean => {
-    if (n.type === 'file') {
-      return n.name.toLowerCase().includes(searchTerm.toLowerCase());
-    }
-    if (n.children) {
-      return Object.values(n.children).some(hasMatchingChildren);
-    }
-    return false;
-  };
 
-  const shouldShow = !searchTerm || isMatched || hasMatchingChildren(node);
+  // 修复 #1: 确保 isMatched 始终是布尔类型
+  const isMatched =
+    !!(searchTerm && node.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  if (!shouldShow) {
+  // 如果有搜索词，但当前节点及其所有子节点都不匹配，则不渲染该节点
+  if (searchTerm && !hasMatchingDescendant(node, searchTerm)) {
     return null;
   }
 
+  const handleToggle = () => {
+    if (node.type === 'directory') {
+      onToggleExpand(node.path);
+    }
+  };
+  
   return (
     <div className={styles.treeNode}>
       <FileNodeComponent
         node={node}
-        isSelected={isSelected}
+        isSelected={selectedFiles.has(node.path)}
         isExpanded={isExpanded}
         isMatched={isMatched}
         level={level}
-        onSelect={(selected) => onFileSelect(node.path, selected)}
-        onToggle={() => onToggleExpand(node.path)}
+        // 修复 #2: 直接传递 onFileSelect 函数
+        onSelect={onFileSelect}
+        onToggle={handleToggle}
       />
       
-      {node.type === 'directory' && node.children && isExpanded && (
+      {isExpanded && node.type === 'directory' && node.children && (
         <div className={styles.children}>
           {Object.values(node.children)
             .sort((a, b) => {
-              // 目录优先，然后按名称排序
+              // 目录优先
               if (a.type !== b.type) {
                 return a.type === 'directory' ? -1 : 1;
               }
+              // 按名称排序
               return a.name.localeCompare(b.name);
             })
             .map(child => (
@@ -76,7 +89,8 @@ export const FileTree: React.FC<FileTreeProps> = ({
                 onToggleExpand={onToggleExpand}
                 level={level + 1}
               />
-            ))}
+            ))
+          }
         </div>
       )}
     </div>

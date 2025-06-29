@@ -6,20 +6,19 @@ import { PRESETS } from '../../utils/presets';
 import styles from './styles.module.css';
 
 interface FilterPanelProps {
-  config: FilterConfig;
-  onChange: (config: FilterConfig) => void;
+  filterConfig: FilterConfig;
+  onFilterUpdate: (newConfig: Partial<FilterConfig>) => void;
   fileTree: FileNode | null;
 }
 
 export const FilterPanel: React.FC<FilterPanelProps> = ({
-  config,
-  onChange,
+  filterConfig,
+  onFilterUpdate,
   fileTree,
 }) => {
   const handlePresetChange = (preset: PresetType) => {
     const presetConfig = PRESETS[preset];
-    onChange({
-      ...config,
+    onFilterUpdate({
       preset,
       includeExtensions: [...presetConfig.includeExtensions],
       excludePatterns: [...presetConfig.excludePatterns],
@@ -28,31 +27,28 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   };
 
   const handleSizeChange = (maxSize: number) => {
-    onChange({
-      ...config,
+    onFilterUpdate({
       maxFileSize: maxSize,
     });
   };
 
   const handleExtensionToggle = (ext: string) => {
-    const extensions = new Set(config.includeExtensions);
+    const extensions = new Set(filterConfig.includeExtensions);
     if (extensions.has(ext)) {
       extensions.delete(ext);
     } else {
       extensions.add(ext);
     }
-    onChange({
-      ...config,
+    onFilterUpdate({
       includeExtensions: Array.from(extensions),
       preset: 'custom',
     });
   };
 
   const handleAddExtension = (ext: string) => {
-    if (!config.includeExtensions.includes(ext)) {
-      onChange({
-        ...config,
-        includeExtensions: [...config.includeExtensions, ext],
+    if (!filterConfig.includeExtensions.includes(ext)) {
+      onFilterUpdate({
+        includeExtensions: [...filterConfig.includeExtensions, ext],
         preset: 'custom',
       });
     }
@@ -82,12 +78,12 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       <h2 className={styles.title}>🎯 过滤设置</h2>
       
       <PresetFilters
-        currentPreset={config.preset}
+        currentPreset={filterConfig.preset}
         onPresetChange={handlePresetChange}
       />
       
       <SizeFilter
-        maxSize={config.maxFileSize}
+        maxSize={filterConfig.maxFileSize}
         onSizeChange={handleSizeChange}
       />
       
@@ -98,10 +94,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             <label key={ext} className={styles.extensionItem}>
               <input
                 type="checkbox"
-                checked={config.includeExtensions.includes(ext) || 
-                        config.includeExtensions.includes('*')}
+                checked={filterConfig.includeExtensions.includes(ext) || 
+                        filterConfig.includeExtensions.includes('*')}
                 onChange={() => handleExtensionToggle(ext)}
-                disabled={config.includeExtensions.includes('*')}
+                disabled={filterConfig.includeExtensions.includes('*')}
               />
               <span>{ext}</span>
             </label>
@@ -128,11 +124,11 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         />
       </div>
       
-      {config.preset === 'custom' && config.includeExtensions.length > 0 && (
+      {filterConfig.preset === 'custom' && filterConfig.includeExtensions.length > 0 && (
         <div className={styles.section}>
           <h3 className={styles.sectionTitle}>已选择的扩展名</h3>
           <div className={styles.selectedExtensions}>
-            {config.includeExtensions.map(ext => (
+            {filterConfig.includeExtensions.map(ext => (
               <span key={ext} className={styles.tag}>
                 {ext}
                 <button

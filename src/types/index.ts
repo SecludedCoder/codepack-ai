@@ -1,10 +1,15 @@
+// src/types/index.ts
+
 // 文件节点类型
 export interface FileNode {
   name: string;
   path: string;
   type: 'file' | 'directory';
-  size: number;
-  lastModified?: number;
+  // 对于目录，size可以为0或累加值，对于文件，它总是数字
+  size: number; 
+  // File API 返回的是 number (timestamp), 但Date对象也很有用
+  lastModified?: number | Date; 
+  // children是可选的，并且是Record<string, FileNode>类型，以匹配 useFileSystem.ts 中的用法
   children?: Record<string, FileNode>;
 }
 
@@ -16,11 +21,11 @@ export interface FilterConfig {
   // 包含的文件扩展名
   includeExtensions: string[];
   
-  // 排除的文件模式（正则表达式）
+  // 排除的文件/目录模式（简单字符串或正则表达式）
   excludePatterns: string[];
   
   // 预设名称
-  preset?: PresetType;
+  preset: PresetType;
 }
 
 // 预设类型

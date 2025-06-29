@@ -1,3 +1,5 @@
+// src/components/FileExplorer/index.tsx
+
 import React, { useState, useCallback } from 'react';
 import { FileNode } from '../../types';
 import { FileTree } from './FileTree';
@@ -33,19 +35,23 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     });
   }, []);
 
+  const collectAllDirs = useCallback((node: FileNode | null, dirs: Set<string>) => {
+    if (!node) return;
+    if (node.type === 'directory') {
+      dirs.add(node.path);
+      if (node.children) {
+        Object.values(node.children).forEach(child => collectAllDirs(child, dirs));
+      }
+    }
+  }, []);
+
   const handleExpandAll = useCallback(() => {
     const allDirs = new Set<string>();
-    const collectDirs = (node: FileNode) => {
-      if (node.type === 'directory') {
-        allDirs.add(node.path);
-        if (node.children) {
-          Object.values(node.children).forEach(collectDirs);
-        }
-      }
-    };
-    if (fileTree) collectDirs(fileTree);
+    if (fileTree) {
+      collectAllDirs(fileTree, allDirs);
+    }
     setExpandedDirs(allDirs);
-  }, [fileTree]);
+  }, [fileTree, collectAllDirs]);
 
   const handleCollapseAll = useCallback(() => {
     setExpandedDirs(new Set());
@@ -63,7 +69,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   if (error) {
     return (
       <div className={styles.error}>
-        <p>❌ {error}</p>
+        <p>? {error}</p>
       </div>
     );
   }

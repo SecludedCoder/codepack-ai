@@ -75,6 +75,14 @@ export async function generateBundle(
   return output.join('\n');
 }
 
+// 格式化文件大小
+export function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
+}
+
 // 收集选中的文件节点
 function collectSelectedNodes(
   node: FileNode,
@@ -166,17 +174,12 @@ function detectLanguage(filePath: string): string {
   const ext = filePath.split('.').pop()?.toLowerCase() || '';
   
   const languageMap: Record<string, string> = {
-    // 编程语言
-    'py': 'python',
     'js': 'javascript',
-    'jsx': 'jsx',
+    'jsx': 'javascript',
     'ts': 'typescript',
-    'tsx': 'tsx',
+    'tsx': 'typescript',
+    'py': 'python',
     'java': 'java',
-    'kt': 'kotlin',
-    'scala': 'scala',
-    'go': 'go',
-    'rs': 'rust',
     'c': 'c',
     'cpp': 'cpp',
     'cc': 'cpp',
@@ -186,73 +189,60 @@ function detectLanguage(filePath: string): string {
     'cs': 'csharp',
     'php': 'php',
     'rb': 'ruby',
+    'go': 'go',
+    'rs': 'rust',
+    'kt': 'kotlin',
     'swift': 'swift',
+    'scala': 'scala',
+    'sh': 'bash',
+    'bash': 'bash',
+    'zsh': 'bash',
+    'fish': 'bash',
+    'ps1': 'powershell',
     'r': 'r',
-    'm': 'matlab',
-    'lua': 'lua',
-    'pl': 'perl',
-    
-    // 标记语言
+    'R': 'r',
+    'sql': 'sql',
     'html': 'html',
     'htm': 'html',
     'xml': 'xml',
-    'vue': 'vue',
-    'svelte': 'svelte',
-    
-    // 样式
     'css': 'css',
     'scss': 'scss',
     'sass': 'sass',
     'less': 'less',
-    'styl': 'stylus',
-    
-    // 配置
     'json': 'json',
     'yaml': 'yaml',
     'yml': 'yaml',
     'toml': 'toml',
     'ini': 'ini',
-    'conf': 'conf',
-    'cfg': 'cfg',
-    
-    // 脚本
-    'sh': 'bash',
-    'bash': 'bash',
-    'zsh': 'bash',
-    'fish': 'fish',
-    'ps1': 'powershell',
-    'bat': 'batch',
-    'cmd': 'batch',
-    
-    // 数据
-    'sql': 'sql',
-    'csv': 'csv',
-    
-    // 文档
+    'cfg': 'ini',
+    'conf': 'ini',
     'md': 'markdown',
+    'markdown': 'markdown',
     'rst': 'rst',
     'tex': 'latex',
+    'dockerfile': 'dockerfile',
+    'makefile': 'makefile',
+    'mk': 'makefile',
+    'asm': 'assembly',
+    's': 'assembly',
+    'pl': 'perl',
+    'lua': 'lua',
+    'vim': 'vim',
+    'diff': 'diff',
+    'patch': 'diff',
   };
   
-  return languageMap[ext] || '';
-}
-
-// 格式化文件大小
-export function formatFileSize(bytes: number): string {
-  const units = ['B', 'KB', 'MB', 'GB'];
-  let size = bytes;
-  let unitIndex = 0;
+  // 特殊文件名
+  const fileName = filePath.split('/').pop()?.toLowerCase() || '';
+  if (fileName === 'dockerfile') return 'dockerfile';
+  if (fileName === 'makefile' || fileName === 'gnumakefile') return 'makefile';
+  if (fileName === 'rakefile') return 'ruby';
+  if (fileName === 'gemfile') return 'ruby';
+  if (fileName === 'cmakelists.txt') return 'cmake';
+  if (fileName === 'package.json') return 'json';
+  if (fileName === 'tsconfig.json') return 'json';
+  if (fileName === '.gitignore') return 'gitignore';
+  if (fileName === '.env') return 'dotenv';
   
-  while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024;
-    unitIndex++;
-  }
-  
-  return `${size.toFixed(1)} ${units[unitIndex]}`;
-}
-
-// 占位符函数 - 实际使用时需要从 useFileSystem hook 获取
-async function getFileContentPlaceholder(path: string): Promise<string> {
-  // 这里应该调用实际的文件读取函数
-  return `// 文件内容: ${path}\n// 这是一个占位符，实际内容需要从文件系统读取`;
+  return languageMap[ext] || 'text';
 }

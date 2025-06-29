@@ -10,11 +10,11 @@ interface FileNodeComponentProps {
   isExpanded: boolean;
   isMatched: boolean;
   level: number;
-  onSelect: (selected: boolean) => void;
+  onSelect: (path: string, selected: boolean) => void;
   onToggle: () => void;
 }
 
-export const FileNodeComponent: React.FC<FileNodeComponentProps> = ({
+export const FileNodeComponent: React.FC<FileNodeComponentProps> = React.memo(({
   node,
   isSelected,
   isExpanded,
@@ -36,14 +36,17 @@ export const FileNodeComponent: React.FC<FileNodeComponentProps> = ({
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
-    onSelect(e.target.checked);
+    onSelect(node.path, e.target.checked);
   };
+
+  const nodeLabel = `${node.name} - ${node.path}`;
 
   return (
     <div 
       className={`${styles.nodeItem} ${isMatched ? styles.matched : ''}`}
       style={{ paddingLeft: `${indent}px` }}
       onClick={handleClick}
+      title={node.path}
     >
       {node.type === 'directory' && (
         <span className={styles.arrow}>
@@ -58,15 +61,16 @@ export const FileNodeComponent: React.FC<FileNodeComponentProps> = ({
           onChange={handleCheckboxChange}
           onClick={(e) => e.stopPropagation()}
           className={styles.checkbox}
+          aria-label={nodeLabel}
         />
       )}
       
       <span className={styles.icon}>{icon}</span>
       <span className={styles.name}>{node.name}</span>
       
-      {node.type === 'file' && (
+      {node.type === 'file' && node.size > 0 && (
         <span className={styles.size}>{formatFileSize(node.size)}</span>
       )}
     </div>
   );
-};
+});

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { FilterConfig, PresetType } from '../types';
 
 export function useLocalStorage<T>(
   key: string,
@@ -53,14 +54,16 @@ export function useLocalStorage<T>(
   return [storedValue, setValue];
 }
 
-// 用于存储过滤器配置的 Hook
-export function useStoredFilterConfig() {
-  return useLocalStorage('codepack-filter-config', {
-    preset: 'custom',
+// 用于存储过滤器配置的 Hook - 确保类型正确
+export function useStoredFilterConfig(): [FilterConfig, (value: FilterConfig | ((prev: FilterConfig) => FilterConfig)) => void] {
+  const defaultConfig: FilterConfig = {
+    preset: 'custom' as PresetType,  // 明确指定类型
     includeExtensions: [],
     excludePatterns: [],
     maxFileSize: 500 * 1024, // 500KB 默认值
-  });
+  };
+  
+  return useLocalStorage<FilterConfig>('codepack-filter-config', defaultConfig);
 }
 
 // 用于存储最近打开的目录

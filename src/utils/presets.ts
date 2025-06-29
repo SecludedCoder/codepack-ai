@@ -209,109 +209,124 @@ export const PRESETS: Record<PresetType, PresetConfig> = {
 export function getFileIcon(filename: string): string {
   const ext = filename.split('.').pop()?.toLowerCase() || '';
   const name = filename.toLowerCase();
-
-  // 特殊文件
-  const specialFiles: Record<string, string> = {
-    'dockerfile': '🐳',
-    'docker-compose.yml': '🐳',
-    'docker-compose.yaml': '🐳',
-    'package.json': '📦',
-    'package-lock.json': '🔒',
-    'yarn.lock': '🔒',
-    'requirements.txt': '📋',
-    'pipfile': '📋',
-    'makefile': '🔧',
-    '.gitignore': '🚫',
-    '.env': '🔐',
-    'readme.md': '📖',
-    'license': '⚖️',
-  };
-
-  if (specialFiles[name]) {
-    return specialFiles[name];
-  }
-
-  // 扩展名映射
-  const extIcons: Record<string, string> = {
+  
+  // 特殊文件名
+  if (name === 'dockerfile') return '🐳';
+  if (name === 'docker-compose.yml' || name === 'docker-compose.yaml') return '🐳';
+  if (name === 'package.json') return '📦';
+  if (name === 'tsconfig.json') return '📘';
+  if (name === 'makefile' || name === 'gnumakefile') return '🔧';
+  if (name === '.gitignore') return '🚫';
+  if (name === '.env' || name.startsWith('.env.')) return '🔐';
+  if (name === 'readme.md' || name === 'readme.txt' || name === 'readme') return '📖';
+  if (name === 'license' || name === 'license.md' || name === 'license.txt') return '📜';
+  
+  // 根据扩展名
+  const iconMap: Record<string, string> = {
     // 编程语言
-    'py': '🐍',
     'js': '📜',
     'jsx': '⚛️',
     'ts': '📘',
     'tsx': '⚛️',
+    'py': '🐍',
     'java': '☕',
-    'kt': '🟪',
     'go': '🐹',
     'rs': '🦀',
-    'c': '🔵',
-    'cpp': '🔷',
-    'cs': '🟦',
     'php': '🐘',
     'rb': '💎',
-    'swift': '🍎',
-    'r': '📊',
+    'swift': '🦉',
+    'kt': '🗿',
     'scala': '🔴',
+    'cpp': '🔷',
+    'c': '🔷',
+    'cs': '🟦',
+    'lua': '🌙',
+    'r': '📊',
     
-    // 标记语言
+    // Web 技术
     'html': '🌐',
     'htm': '🌐',
-    'xml': '📄',
-    'vue': '💚',
-    'svelte': '🧡',
-    
-    // 样式
     'css': '🎨',
     'scss': '🎨',
     'sass': '🎨',
     'less': '🎨',
-    'styl': '🎨',
+    'vue': '💚',
+    'svelte': '🔥',
     
-    // 配置
+    // 数据格式
     'json': '📋',
+    'xml': '📋',
     'yaml': '📋',
     'yml': '📋',
     'toml': '📋',
     'ini': '⚙️',
-    'conf': '⚙️',
     'cfg': '⚙️',
+    'conf': '⚙️',
     
     // 文档
     'md': '📝',
     'txt': '📄',
-    'rst': '📄',
     'pdf': '📕',
     'doc': '📘',
     'docx': '📘',
     
-    // 数据
-    'csv': '📊',
-    'sql': '🗃️',
-    'db': '🗄️',
-    
-    // 脚本
-    'sh': '💻',
-    'bash': '💻',
-    'zsh': '💻',
-    'fish': '💻',
-    'ps1': '💻',
-    'bat': '💻',
-    'cmd': '💻',
-    
-    // 图像
+    // 图片
     'jpg': '🖼️',
     'jpeg': '🖼️',
     'png': '🖼️',
     'gif': '🖼️',
-    'svg': '🖼️',
+    'svg': '🎨',
     'ico': '🖼️',
     
-    // 压缩
-    'zip': '🗜️',
-    'tar': '🗜️',
-    'gz': '🗜️',
-    'rar': '🗜️',
-    '7z': '🗜️',
+    // 其他
+    'sh': '🐚',
+    'bash': '🐚',
+    'zsh': '🐚',
+    'fish': '🐚',
+    'ps1': '🐚',
+    'sql': '🗄️',
+    'db': '🗄️',
+    'lock': '🔒',
+    'log': '📋',
+    'bak': '💾',
+    'zip': '📦',
+    'tar': '📦',
+    'gz': '📦',
+    'rar': '📦',
   };
+  
+  return iconMap[ext] || '📄';
+}
 
-  return extIcons[ext] || '📄';
+// 检查是否应该忽略目录
+export function shouldIgnoreDirectory(name: string): boolean {
+  const ignoreDirs = [
+    '.git',
+    '.svn',
+    '.hg',
+    'node_modules',
+    '__pycache__',
+    '.venv',
+    'venv',
+    '.idea',
+    '.vscode',
+    'dist',
+    'build',
+    '.next',
+    '.nuxt',
+    'coverage',
+    '.pytest_cache',
+    '.mypy_cache',
+    'vendor',
+    'target',
+    '.gradle',
+    'bin',
+    'obj',
+    '.sass-cache',
+    '.cache',
+    'tmp',
+    'temp',
+  ];
+  
+  return ignoreDirs.includes(name.toLowerCase());
 }

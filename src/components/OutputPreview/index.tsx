@@ -1,29 +1,23 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styles from './styles.module.css';
 
 interface OutputPreviewProps {
-  content: string;
+  output: string;
+  onCopy: () => Promise<void>;
+  onDownload: () => void;
   onClose: () => void;
+  copied: boolean;
 }
 
 export const OutputPreview: React.FC<OutputPreviewProps> = ({
-  content,
+  output,
+  onCopy,
+  onDownload,
   onClose,
+  copied,
 }) => {
-  const [copied, setCopied] = useState(false);
-  
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(content);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('复制失败:', err);
-    }
-  };
-  
-  const lines = content.split('\n').length;
-  const size = new Blob([content]).size;
+  const lines = output.split('\n').length;
+  const size = new Blob([output]).size;
   const sizeText = size < 1024 
     ? `${size} B` 
     : size < 1024 * 1024 
@@ -51,30 +45,21 @@ export const OutputPreview: React.FC<OutputPreviewProps> = ({
         <div className={styles.actions}>
           <button 
             className={`${styles.actionButton} ${copied ? styles.copied : ''}`}
-            onClick={handleCopy}
+            onClick={onCopy}
           >
             {copied ? '✓ 已复制' : '📋 复制到剪贴板'}
           </button>
           
           <button 
             className={styles.actionButton}
-            onClick={() => {
-              const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-              a.href = url;
-              a.download = `codepack_${timestamp}.txt`;
-              a.click();
-              URL.revokeObjectURL(url);
-            }}
+            onClick={onDownload}
           >
             💾 下载文件
           </button>
         </div>
         
         <pre className={styles.preview}>
-          {content}
+          {output}
         </pre>
       </div>
     </div>

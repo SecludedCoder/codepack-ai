@@ -1,25 +1,19 @@
+// src/index.tsx
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import './styles/globals.css';
+import './index.css';
 
-// 检查浏览器兼容性
-const checkBrowserCompatibility = () => {
-  const isChromium = 'showDirectoryPicker' in window;
-  const userAgent = navigator.userAgent.toLowerCase();
-  
-  if (!isChromium) {
-    console.warn(
-      '您的浏览器不完全支持 File System Access API。' +
-      '推荐使用 Chrome 86+, Edge 86+, 或 Opera 72+ 以获得最佳体验。'
-    );
-  }
-  
-  return isChromium;
-};
+// Detect if running in development mode
+const isDevelopment = import.meta.env.DEV;
 
-// 初始化应用
-const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
+// Mount the app
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error('Root element not found');
+}
+
+const root = ReactDOM.createRoot(rootElement);
 
 root.render(
   <React.StrictMode>
@@ -27,29 +21,23 @@ root.render(
   </React.StrictMode>
 );
 
-// 浏览器兼容性检查
-checkBrowserCompatibility();
+// Show console message in development
+if (isDevelopment) {
+  console.log(
+    '%cCodePack AI',
+    'color: #3b82f6; font-size: 24px; font-weight: bold;'
+  );
+  console.log(
+    '%cBundle your code for AI assistants',
+    'color: #6b7280; font-size: 14px;'
+  );
+}
 
-// 注册键盘快捷键
-document.addEventListener('keydown', (e) => {
-  // Ctrl/Cmd + O: 打开目录
-  if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
-    e.preventDefault();
-    // 触发打开目录的事件
-    window.dispatchEvent(new CustomEvent('open-directory'));
-  }
-});
-
-// 注册 Service Worker (PWA)
-if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+// Register service worker for production
+if ('serviceWorker' in navigator && !isDevelopment) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker
-      .register('/service-worker.js')
-      .then((registration) => {
-        console.log('Service Worker 注册成功:', registration);
-      })
-      .catch((error) => {
-        console.log('Service Worker 注册失败:', error);
-      });
+    navigator.serviceWorker.register('/sw.js').catch((error) => {
+      console.error('Service worker registration failed:', error);
+    });
   });
 }

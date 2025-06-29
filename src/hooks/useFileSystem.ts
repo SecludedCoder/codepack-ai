@@ -1,9 +1,12 @@
+// src/hooks/useFileSystem.ts
+
 import { useState, useCallback, useRef } from 'react';
 import { FileNode } from '../types';
+import { shouldIgnoreDirectory } from '../utils/presets';
 
 export function useFileSystem() {
   const [fileTree, setFileTree] = useState<FileNode | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileContentsRef = useRef<Map<string, File>>(new Map());
 
@@ -21,10 +24,9 @@ export function useFileSystem() {
     if (!checkSupport()) return;
 
     try {
-      setIsLoading(true);
+      setLoading(true);
       setError(null);
       
-      // 清理之前的文件内容缓存
       fileContentsRef.current.clear();
       
       // @ts-ignore - File System Access API
@@ -37,17 +39,16 @@ export function useFileSystem() {
         setError('读取目录失败: ' + err.message);
       }
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   }, []);
 
   // 处理拖拽上传
   const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setLoading(true);
     setError(null);
     
-    // 清理之前的文件内容缓存
     fileContentsRef.current.clear();
 
     try {
@@ -55,7 +56,7 @@ export function useFileSystem() {
       const fileSystemEntries = await Promise.all(
         items
           .filter(item => item.kind === 'file')
-          .map(item => item.webkitGetAsEntry())
+          .map(item => (item as any).webkitGetAsEntry())
       );
 
       const validEntries = fileSystemEntries.filter(Boolean);
@@ -63,7 +64,6 @@ export function useFileSystem() {
         throw new Error('没有检测到有效的文件或文件夹');
       }
 
-      // 处理第一个项目（文件夹或文件）
       const entry = validEntries[0];
       if (entry && entry.isDirectory) {
         const tree = await processWebkitDirectory(entry);
@@ -74,7 +74,7 @@ export function useFileSystem() {
     } catch (err: any) {
       setError('处理拖拽失败: ' + err.message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   }, []);
 
@@ -100,27 +100,29 @@ export function useFileSystem() {
         if (entry.kind === 'file') {
           const file = await entry.getFile();
           
-          // 存储文件引用
           fileContentsRef.current.set(entryPath, file);
           
-          node.children[entry.name] = {
-            name: entry.name,
-            path: entryPath,
-            type: 'file',
-            size: file.size,
-            lastModified: file.lastModified,
-          };
+          if (node.children) {
+            node.children[entry.name] = {
+              name: entry.name,
+              path: entryPath,
+              type: 'file',
+              size: file.size,
+              lastModified: file.lastModified,
+            };
+          }
         } else if (entry.kind === 'directory') {
-          // 跳过常见的需要忽略的目录
           if (shouldIgnoreDirectory(entry.name)) {
             continue;
           }
           
-          node.children[entry.name] = await processDirectory(
-            entry,
-            entry.name,
-            entryPath
-          );
+          if (node.children) {
+            node.children[entry.name] = await processDirectory(
+              entry,
+              entry.name,
+              entryPath
+            );
+          }
         }
       }
     } catch (err) {
@@ -139,7 +141,6 @@ export function useFileSystem() {
       return new Promise((resolve) => {
         entry.file((file: File) => {
           const filePath = path || entry.name;
-          // 存储文件引用
           fileContentsRef.current.set(filePath, file);
           
           resolve({
@@ -187,38 +188,18 @@ export function useFileSystem() {
           continue;
         }
         
-        node.children[childEntry.name] = await processWebkitDirectory(
-          childEntry,
-          childPath
-        );
+        if (node.children) {
+          node.children[childEntry.name] = await processWebkitDirectory(
+            childEntry,
+            childPath
+          );
+        }
       }
       
       return node;
     }
 
-    // 不应该到达这里
     throw new Error('Unknown entry type');
-  }
-
-  // 判断是否应该忽略的目录
-  function shouldIgnoreDirectory(name: string): boolean {
-    const ignoreList = [
-      '.git',
-      'node_modules',
-      '.venv',
-      'venv',
-      '__pycache__',
-      '.idea',
-      '.vscode',
-      'dist',
-      'build',
-      '.next',
-      '.nuxt',
-      'coverage',
-      '.pytest_cache',
-    ];
-    
-    return ignoreList.includes(name);
   }
 
   // 获取文件内容
@@ -238,7 +219,7 @@ export function useFileSystem() {
 
   return {
     fileTree,
-    isLoading,
+    loading,
     error,
     loadDirectory,
     handleDrop,

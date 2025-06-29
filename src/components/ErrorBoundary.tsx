@@ -1,4 +1,5 @@
-import React, { Component, ReactNode } from 'react';
+// src/components/ErrorBoundary.tsx
+import { Component, ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
@@ -6,31 +7,31 @@ interface Props {
 
 interface State {
   hasError: boolean;
-  error: Error | null;
+  error?: Error;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = {
-    hasError: false,
-    error: null,
-  };
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false };
+  }
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
-    console.error('错误边界捕获:', error, errorInfo);
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Error caught by boundary:', error, errorInfo);
   }
 
   render() {
     if (this.state.hasError) {
       return (
         <div className="error-boundary">
-          <h2>😔 出错了</h2>
+          <h1>Something went wrong</h1>
           <p>{this.state.error?.message}</p>
-          <button onClick={() => window.location.reload()}>
-            刷新页面
+          <button onClick={() => this.setState({ hasError: false })}>
+            Try again
           </button>
         </div>
       );

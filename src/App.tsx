@@ -1,4 +1,7 @@
-import React, { useState, useCallback } from 'react';
+// src/App.tsx
+
+import { useState, useCallback } from 'react';
+import { saveAs } from 'file-saver';
 import { FileExplorer } from './components/FileExplorer';
 import { FilterPanel } from './components/FilterPanel';
 import { ActionPanel } from './components/ActionPanel';
@@ -8,30 +11,18 @@ import { Footer } from './components/Layout/Footer';
 import { useFileSystem } from './hooks/useFileSystem';
 import { useFileFilters } from './hooks/useFileFilters';
 import { generateBundle } from './utils/bundleGenerator';
-import { FileNode, FilterConfig } from './types';
+import { FileNode } from './types';
 import './styles/globals.css';
 
 function App() {
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [outputContent, setOutputContent] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
-  
-  const { 
-    fileTree, 
-    isLoading, 
-    error, 
-    loadDirectory,
-    handleDrop,
-    getFileContent 
-  } = useFileSystem();
-  
-  const {
-    filterConfig,
-    updateFilterConfig,
-    applyFilters
-  } = useFileFilters();
+  const [copied, setCopied] = useState(false);
 
-  // 处理文件选择
+  const { fileTree, loading, error, loadDirectory, handleDrop, getFileContent } = useFileSystem();
+  const { filterConfig, updateFilter, applyFilters } = useFileFilters();
+
   const handleFileSelect = useCallback((path: string, selected: boolean) => {
     setSelectedFiles(prev => {
       const newSet = new Set(prev);
@@ -44,21 +35,14 @@ function App() {
     });
   }, []);
 
-  // 批量选择
   const handleSelectAll = useCallback((paths: string[]) => {
-    setSelectedFiles(prev => new Set([...prev, ...paths]));
+    setSelectedFiles(new Set(paths));
   }, []);
 
-  // 批量取消选择
-  const handleDeselectAll = useCallback((paths: string[]) => {
-    setSelectedFiles(prev => {
-      const newSet = new Set(prev);
-      paths.forEach(path => newSet.delete(path));
-      return newSet;
-    });
+  const handleDeselectAll = useCallback(() => {
+    setSelectedFiles(new Set());
   }, []);
 
-  // 生成打包文件
   const handleGenerate = useCallback(async () => {
     if (selectedFiles.size === 0) {
       alert('请至少选择一个文件');
@@ -69,26 +53,53 @@ function App() {
     try {
       const content = await generateBundle(fileTree, selectedFiles, getFileContent);
       setOutputContent(content);
-      
-      // 自动下载
-      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-      a.href = url;
-      a.download = `codepack_${timestamp}.txt`;
-      a.click();
-      URL.revokeObjectURL(url);
+      setCopied(false);
     } catch (err) {
       console.error('生成失败:', err);
       alert('生成打包文件失败');
     } finally {
       setIsGenerating(false);
     }
-  }, [fileTree, selectedFiles]);
+  }, [fileTree, selectedFiles, getFileContent]);
 
-  // 应用过滤器
+  const handleDownload = useCallback(() => {
+    const blob = new Blob([outputContent], { type: 'text/plain;charset=utf-8' });
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+    saveAs(blob, `codepack_${timestamp}.txt`);
+  }, [outputContent]);
+
+  const handleCopy = useCallback(async () => {
+    if (!navigator.clipboard) {
+      alert('您的浏览器不支持剪贴板 API');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(outputContent);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('复制失败:', err);
+      alert('复制到剪贴板失败');
+    }
+  }, [outputContent]);
+
   const filteredTree = applyFilters(fileTree, filterConfig);
+
+  const getAllFilePaths = (node: FileNode | null): string[] => {
+    if (!node) return [];
+    const paths: string[] = [];
+    const traverse = (n: FileNode) => {
+      if (n.type === 'file') {
+        paths.push(n.path);
+      } else if (n.children) {
+        Object.values(n.children).forEach(traverse);
+      }
+    };
+    traverse(node);
+    return paths;
+  };
+  
+  const allFilteredFilePaths = getAllFilePaths(filteredTree);
 
   return (
     <div className="app">
@@ -97,36 +108,37 @@ function App() {
       <main className="main-content">
         <div className="sidebar">
           <FilterPanel
-            config={filterConfig}
-            onChange={updateFilterConfig}
+            filterConfig={filterConfig}
+            onFilterUpdate={updateFilter}
             fileTree={fileTree}
           />
           
           <ActionPanel
             selectedCount={selectedFiles.size}
-            totalCount={countFiles(filteredTree)}
+            totalCount={allFilteredFilePaths.length}
             onGenerate={handleGenerate}
-            onSelectAll={() => handleSelectAll(getAllPaths(filteredTree))}
-            onDeselectAll={() => handleDeselectAll(getAllPaths(filteredTree))}
+            onSelectAll={() => handleSelectAll(allFilteredFilePaths)}
+            onDeselectAll={handleDeselectAll}
             isGenerating={isGenerating}
           />
         </div>
 
         <div className="content">
-          {!fileTree ? (
+          {!fileTree && !loading ? (
             <div 
               className="drop-zone"
               onDrop={handleDrop}
               onDragOver={(e) => e.preventDefault()}
             >
               <div className="drop-zone-content">
-                <h2>📁 选择项目目录</h2>
+                <h2>?? 选择项目目录</h2>
                 <p>拖拽文件夹到此处，或点击下方按钮选择</p>
                 <button 
                   className="select-button"
                   onClick={loadDirectory}
+                  disabled={loading}
                 >
-                  选择目录
+                  {loading ? '加载中...' : '选择目录'}
                 </button>
                 <p className="hint">
                   支持 Chrome 86+, Edge 86+, Opera 72+ 浏览器
@@ -138,7 +150,7 @@ function App() {
               fileTree={filteredTree}
               selectedFiles={selectedFiles}
               onFileSelect={handleFileSelect}
-              isLoading={isLoading}
+              isLoading={loading}
               error={error}
             />
           )}
@@ -146,8 +158,11 @@ function App() {
 
         {outputContent && (
           <OutputPreview
-            content={outputContent}
+            output={outputContent}
             onClose={() => setOutputContent('')}
+            onCopy={handleCopy}
+            onDownload={handleDownload}
+            copied={copied}
           />
         )}
       </main>
@@ -155,31 +170,6 @@ function App() {
       <Footer />
     </div>
   );
-}
-
-// 辅助函数
-function countFiles(node: FileNode | null): number {
-  if (!node) return 0;
-  if (node.type === 'file') return 1;
-  
-  let count = 0;
-  for (const child of Object.values(node.children || {})) {
-    count += countFiles(child);
-  }
-  return count;
-}
-
-function getAllPaths(node: FileNode | null, paths: string[] = []): string[] {
-  if (!node) return paths;
-  if (node.type === 'file') {
-    paths.push(node.path);
-    return paths;
-  }
-  
-  for (const child of Object.values(node.children || {})) {
-    getAllPaths(child, paths);
-  }
-  return paths;
 }
 
 export default App;
