@@ -2,7 +2,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import './index.css';
+// 错误已修复：将导入路径从 './index.css' 修改为 './styles/globals.css'
+import './styles/globals.css';
 
 // Detect if running in development mode
 const isDevelopment = import.meta.env.DEV;
