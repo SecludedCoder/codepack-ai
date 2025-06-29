@@ -1,4 +1,4 @@
-// vite.config.ts (修正后)
+// vite.config.ts (最终修正版)
 
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -6,7 +6,6 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // 根据当前模式加载 .env 文件
   const env = loadEnv(mode, process.cwd(), '');
 
   return {
@@ -43,8 +42,9 @@ export default defineConfig(({ mode }) => {
         },
       }),
     ],
-    // 关键改动：只在生产环境构建时设置 base
-    base: mode === 'production' ? '/codepack-ai/' : '/',
+    // 修复：已移除为 GitHub Pages 设置的 base 路径
+    // Vercel 部署应使用默认的根路径 '/'
+
     build: {
       outDir: 'dist',
       assetsDir: 'assets',
@@ -65,7 +65,6 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      // 使用 .env 文件中的端口，如果没有则默认为 3000
       port: Number(env.VITE_DEV_SERVER_PORT) || 3000,
       open: true,
       cors: true,
